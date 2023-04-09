@@ -12,15 +12,13 @@ Pinot 使用了各种各样的术语，这些术语既包括数据[存储模型]
 
 ### Segment
 
-Pinot 有一个支持横向扩展的分布式系统架构。Pinot 预计一张表的大小会随着时间无限增长，为了实现这一点，数据需要分布在多个节点上。Pinot 通过将数据分解成更小的块 (chunks)，Pinot 中称为分段 ([segments](https://docs.pinot.apache.org/basics/components/segment))（类似于 HA 关系数据库中的 shards/partitions ），来实现这一点。分段也可以看作是基于时间的分区 (partitions)。
+Pinot 有一个支持横向扩展的分布式系统架构。Pinot 预计一张表的大小会随着时间无限增长，为了实现这一点，数据需要分布在多个节点上。Pinot 通过将数据分解成更小的块 (chunks) ，Pinot 中称为分段 ([segments](https://docs.pinot.apache.org/basics/components/segment)) - 类似于 HA 关系数据库中的 shards/partitions，来实现这一点。分段也可以看作是基于时间的分区 (partitions) 。
 
 ### Table
 
 与传统数据库相同，Pinot 有表 ([table](https://docs.pinot.apache.org/pinot-components/table)) 的概念：一个指向相关数据集合的逻辑抽象。
 
-与 RDBMS 相同，表是由可以使用 SQL 查询的列和行 (documents) 组成的结构。表与模式 ([schema](https://docs.pinot.apache.org/basics/components/schema)) 相关联，在模式定义表中的列及其数据类型。
-
-与 RDBMS 模式相比，Pinot 中的多个表 (real-time or batch) 可以继承单个模式定义。表是根据索引 (indexing) 策略、分区 (partitioning) 、租户 (tenants) 、数据源 (data sources) 、以及主从复制 (replication) 等问题独立配置的。
+与 RDBMS 相同，表是由可以使用 SQL 查询的列和行 (documents) 组成的结构。表与模式 ([schema](https://docs.pinot.apache.org/basics/components/schema)) 相关联，在模式定义表中的列及其数据类型。与 RDBMS 模式相比，Pinot 中的多个表 (real-time or batch) 可以继承单个模式定义。表是根据索引 (indexing) 策略、分区 (partitioning) 、租户 (tenants) 、数据源 (data sources) 、以及主从复制 (replication) 等问题独立配置的。
 
 ### Tenant
 
@@ -61,9 +59,10 @@ Pinot 集群由多个分布式系统组件组成。对于监控系统使用情�
 
 ### Pinot Server
 
-Servers host segments (shards) that are scheduled and allocated across multiple nodes and routed on an assignment to a tenant (there is a single-tenant by default). Servers are independent containers that scale horizontally and are notified by Helix through state changes driven by the controller. A server can either be a real-time server or an offline server. 
+服务器 ([Server](https://docs.pinot.apache.org/basics/components/server)) 管理跨多个节点调度和分配的分段（分片），并被路由到一个租户（默认情况下只有一个租户）。服务器是可以水平扩展的独立容器，控制器驱动的 Helix 会通知它状态的变化。服务器可以是实时 (real-time) 服务器，也可以是离线 (offline) 服务器。
 
-A real-time and offline server have very different resource usage requirements, where real-time servers are continually consuming new messages from external systems (such as Kafka topics) that are ingested and allocated on segments of a tenant. Because of this, resource isolation can be used to prioritize high-throughput real-time data streams that are ingested and then made available for query through a broker.
+实时 (real-time) 服务器和离线 (offline) 服务器有非常不同的资源使用需求，实时服务器不断地消费来自外部系统（如 Kafka topics）的新消息，这些消息被摄取 (ingest) 并分配给租户的各个分段。正因如此，资源隔离可用于对接收的高吞吐量实时数据流进行优先级排序，然后通过代理 (broker) 提供查询。
 
 ### Pinot Minion
-Pinot minion is an optional component that can be used to run background tasks such as "purge" for GDPR (General Data Protection Regulation). As Pinot is an immutable aggregate store, records containing sensitive private data need to be purged on a request-by-request basis. Minion provides a solution for this purpose that complies with GDPR while optimizing Pinot segments and building additional indices that guarantee performance in the presence of the possibility of data deletion. One can also write a custom task that runs on a periodic basis. While it's possible to perform these tasks on the Pinot servers directly, having a separate process (Minion) lessens the overall degradation of query latency as segments are impacted by mutable writes.
+
+Pinot [Minion](https://docs.pinot.apache.org/basics/components/minion) 是一个可选组件，可用于运行后台任务，如 GDPR (通用数据保护条例)的“清洗”。由于 Pinot 是一个不可变的聚合存储，因此包含敏感私有数据的记录需要在逐个请求上被清除。Minion 为此提供了一种符合 GDPR 的解决方案，同时优化了 Pinot 分段并构建额外的索引以保证在数据可能被删除的情况下的性能。还可以编写定期运行的自定义任务。虽然可以直接在 Pinot 服务器上执行这些任务，但拥有一个单独的进程 (Minion) 可以减少整体的查询延迟，因为分段会受到可变写入的影响。
