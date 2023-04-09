@@ -1,11 +1,11 @@
 # Indexing
 
 Pinot 支持以下[索引](https://docs.pinot.apache.org/basics/indexing)技术：
-- [正排索引](#正排索引)
+- [Forward Index](#正排索引)
     - Dictionary-encoded forward index with bit compression
     - Raw value forward index
     - Sorted forward index with run-length encoding
-- [倒排索引](#倒排索引)
+- [Inverted Index](#倒排索引)
     - Bitmap inverted index
     - Sorted inverted index
 - Star-tree Index
@@ -18,12 +18,12 @@ Pinot 支持以下[索引](https://docs.pinot.apache.org/basics/indexing)技术�
 - [JSON Index]()
 - [Timestamp Index]()
 
-每一种索引技术在不同的场景中都有各自的优势。默认情况下，Pinot 为每一列创建一个 dictionary-encoded forward index 。
+每一种索引技术在不同的场景中都有各自的优势。默认情况下，Pinot 为每一列创建一个字典编码正排索引。
 
 ## 启用索引
 要为一个 Pinot 表创建索引有两种方式：
 
-### 1. 在 Pinot 分段(segment)生成期间，作为摄取(ingestion)的一部分
+### 1. 在 Pinot 分段生成期间，作为摄取 (ingestion) 的一部分
 
 通过在表配置中指定希望添加索引的列名来启用索引。可以在 [Table Config](https://docs.pinot.apache.org/configuration-reference/table) 部分以及下面小节中查看如何配置各种类型索引的更多细节。
 
@@ -74,7 +74,7 @@ curl -X POST \
 
 每一列的值都存储在一个正排索引中，正排索引有三种类型:
 
-- [Dictionary encoded forward index](#位压缩字典编码正排索引（默认）)
+- [Dictionary encoded forward index](#位压缩字典编码正排索引默认)
 
     构建一个将唯一 id 映射到列中的每个唯一值的字典，以及包含位压缩 id 的正排索引。
 
@@ -86,7 +86,7 @@ curl -X POST \
 
     直接根据列值构建正排索引。
 
-为了节省 segment 存储空间，现在可以在创建表时[禁用](#禁用正排索引)正排索引。
+为了节省分段存储空间，现在可以在创建表时[禁用](#禁用正排索引)正排索引。
 
 ## 位压缩字典编码正排索引（默认）
 
@@ -125,7 +125,7 @@ curl -X POST \
 
 > **注意：** 一个 Pinot 表只能有一个排序的列。
 
-实时数据摄取将在生成分段(segment)时根据 `sortedColumn` 对数据进行排序 - 你不需要预先对数据进行排序。
+实时数据摄取将在生成分段 (segment) 时根据 `sortedColumn` 对数据进行排序 - 你不需要预先对数据进行排序。
 
 当提交一个分段时，Pinot 将传递每个列中的数据，并为包含排序数据的所有列创建一个排序索引，即使它们没有指定为 `sortedColumn` 。
 
@@ -133,7 +133,7 @@ curl -X POST \
 
 对于离线数据摄取，Pinot 将传递每个列中的数据，并为包含已排序数据的列创建排序索引。这意味着，如果你希望某一列具有排序索引，则需要在将数据摄取到 Pinot 之前按该列对数据进行排序。
 
-如果你正在摄取多个分段(segments)的数据，需要确保数据在每个段内已排好序 - 你不需要跨分段对数据进行排序。
+如果你正在摄取多个分段 (segments) 的数据，需要确保数据在每个段内已排好序 - 你不需要跨分段对数据进行排序。
 
 ### 检查排序状态
 
@@ -197,13 +197,9 @@ curl -X GET \
 
 ## 禁用正排索引
 
-一般来说，正排索引是所有磁盘分段(segment)文件格式中所有列上的强制索引。
+一般来说，正排索引是所有磁盘分段 (segment) 文件格式中所有列上的强制索引。但是，某些列只作为所有查询的 `WHERE` 子句中的筛选使用。在这种情况下，正排索引是不必要的，因为分段中的其他索引和结构可以提供所需的 SQL 查询功能。正排索引在这种情况下只会占用额外的存储空间，理想情况下可以将其释放。
 
-但是，某些列只作为所有查询的 `WHERE` 子句中的筛选使用。在这种情况下，正排索引是不必要的，因为分段中的其他索引和结构可以提供所需的 SQL 查询功能。正排索引在这种情况下只会占用额外的存储空间，理想情况下可以将其释放。
-
-因此，为了给用户提供一个节省存储空间的选项，现在可以选择禁用正排索引。
-
-Pinot 表中一个或多个列上的正排索引可以被禁用，但是有以下限制：
+因此，为了给用户提供一个节省存储空间的选项，Pinot 现在可以选择禁用正排索引，但是有以下限制：
 
 - 仅支持不可变（offline）分段。
 - 如果该列上有范围索引，那么要求该列必须为 single-value 类型并且范围索引使用版本2。
