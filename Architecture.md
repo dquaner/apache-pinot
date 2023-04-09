@@ -91,7 +91,7 @@ Pinot 控制器 (controller) 充当集群整体状态和运行状况的驱动。
 
 > 还有一些高级路由策略可用，比如 ReplicaAware 路由、基于分区的路由和最小服务器选择路由。这些策略适用于特殊或通用的情况，用于提供非常高吞吐量的查询。
 
-```json
+```json5
 // 这是一个在 Helix 中为 EXTERNAL VIEW 配置 ZNode 的例子
 {
   "id" : "baseballStats_OFFLINE",
@@ -117,7 +117,7 @@ Pinot 控制器 (controller) 充当集群整体状态和运行状况的驱动。
 - Merge: 合并从每个服务器返回的查询结果。
 - 将查询结果发送给客户端。
 
-```json
+```json5
 // Query: select count(*) from baseballStats limit 10
 
 // RESPONSE
