@@ -18,3 +18,8 @@
   * [Text Search Support](basics/indexing/text-search-support.md)
   * [JSON Index](basics/indexing/json-index.md)
   * [Timestamp Index](basics/indexing/timestamp-index.md)
+
+## configuration reference
+
+* [Table](configuration-reference/table.md)
+* [Schema](configuration-reference/schema.md)
