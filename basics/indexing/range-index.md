@@ -10,7 +10,7 @@ WHERE hits > 11
 
 范围索引是倒排索引的一种变体，在倒排索引中，我们创建的不是从值到列的映射，而是从值的范围到列的映射。可以在表配置中添加如下配置来使用范围索引：
 
-```json5
+```javascript
 {
     "tableIndexConfig": {
         "rangeIndexColumns": [

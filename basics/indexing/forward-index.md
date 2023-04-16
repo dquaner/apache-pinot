@@ -38,7 +38,7 @@
 
 在表配置中设置排序索引：
 
-```json
+```javascript
 {
     "tableIndexConfig": {
         "sortedColumn": [
@@ -98,7 +98,7 @@ curl -X GET \
 
 可以在 [table config](https://docs.pinot.apache.org/configuration-reference/table) 中配置原始值正排索引：
 
-```json
+```javascript
 {
     "tableIndexConfig": {
         "noDictionaryColumns": [

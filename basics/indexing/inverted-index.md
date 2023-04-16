@@ -6,7 +6,7 @@
 
 倒排索引可以通过在表配置做如下设置来添加:
 
-```json5
+```javascript
 {
     "tableIndexConfig": {
         "invertedIndexColumns": [

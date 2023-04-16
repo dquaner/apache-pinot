@@ -20,7 +20,7 @@ WHERE playerID = 12345
 
 1. 默认设置
 
-```json5
+```javascript
 {
   "tableIndexConfig": {
     "bloomFilterColumns": [
@@ -35,7 +35,7 @@ WHERE playerID = 12345
 
 2. 自定义参数
 
-```json5
+```javascript
 {
   "tableIndexConfig": {
     "bloomFilterConfigs": {

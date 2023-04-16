@@ -39,7 +39,7 @@ Pinot 支持以下索引技术：
 
 例如，如果你已经为 `foo` 列添加了倒排索引，并且现在想为 `bar` 列也添加相同的索引，你可以将表配置从下面这样：
 
-```json
+```javascript
 "tableIndexConfig": {
     "invertedIndexColumns": ["foo"],
     ...
@@ -48,7 +48,7 @@ Pinot 支持以下索引技术：
 
 更新成这样：
 
-```json
+```javascript
 "tableIndexConfig": {
     "invertedIndexColumns": ["foo", "bar"],
     ...
