@@ -201,7 +201,7 @@ WHERE TEXT_MATCH(QUERY_LOG_COL, '"timestamp between" AND "group by"')
 
 和其他索引相同，用户可以通过表配置启用文本索引。作为文本搜索特性的一部分，我们还引入了一个新的通用方法来指定每一列的编码和索引信息。在[表配置](../../configuration-reference/table.md)页的 fieldConfigList 小节介绍了相关内容。
 
-```javascript
+```json
 "fieldConfigList":[
   {
      "name":"text_col_1",
@@ -218,7 +218,7 @@ WHERE TEXT_MATCH(QUERY_LOG_COL, '"timestamp between" AND "group by"')
 
 因为我们还没有移除老的指定索引信息的方式，为列添加文本索引还可以通过 `tableIndexConfig` 中的 `noDictionaryColumns` 指定：
 
-```javascript
+```json
 "tableIndexConfig": {
    "noDictionaryColumns": [
      "text_col_1",
@@ -244,13 +244,11 @@ The above mechanism can be used to configure text indexes in the following scena
 
 ### 文本解析和标记化
 
-原始的文本记录（一个启用了文本索引的列中的值）会被解析，标记化 (tokenized) ，并且独立的“可索引的”短语会被提取，这些短语会被添加到索引中。
-
-Pinot's text index is built on top of Lucene. Lucene's **standard english text tokenizer** generally works well for most classes of text. We might want to build custom text parser and tokenizer to suit particular user requirements. Accordingly, we can make this configurable for the user to specify on per column text index basis.
+原始的文本记录（一个启用了文本索引的列中的值）会被解析，标记化 (tokenized) ，并且独立的“可索引的”短语会被提取并被添加到索引中。
 
 Pinot 的文本索引建立在 Lucene 之上。Lucene 的**标准英语文本标记器**通常适用于大多数文本类。我们可能希望构建自定义文本解析器和标记器来满足特定的用户需求。因此，我们可以让用户在每个列文本索引的基础上指定这个可配置的参数。
 
-There is a default set of "stop words" built in Pinot's text index. This is a set of high frequency words in English that are excluded for search efficiency and index size, including:
+Pinot 的文本索引内置了“停止词”的默认集合，这是一组基于搜索效率和索引大小而被排除在外的英语高频词，包括:
 
 ```
 "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it",
@@ -258,11 +256,11 @@ There is a default set of "stop words" built in Pinot's text index. This is a se
 "they", "this", "to", "was", "will", "with", "those"
 ```
 
-Any occurrence of these words in will be ignored by the tokenizer during index creation and search.
+在索引创建和搜索过程中，标记器将忽略这些词的出现。
 
-In some cases, users might want to customize the set. A good example would be when `IT` (Information Technology) appears in the text that collides with "it", or some context-specific words that are not informative in the search. To do this, one can config the words in `fieldConfig` to include/exclude from the default stop words:
+在某些情况下，用户可能希望自定义“停止词”集合。一个很好的例子是，当 `IT`（信息技术）出现在与 "it" 冲突的文本中，或者一些上下文特定的单词在搜索中不包含实质信息。要做到这一点，可以配置 `fieldConfig` 来包含或排除默认停止词:
 
-```
+```json
 "fieldConfigList":[
   {
      "name":"text_col_1",
@@ -276,51 +274,51 @@ In some cases, users might want to customize the set. A good example would be wh
 ]
 ```
 
-The words should be **comma separated** and in **lowercase**. Duplicated words in both list will end up get excluded.
+单词应该用**逗号分隔**并**小写**，如果一个单词同时出现在在两个列表中，那么该单词将最终被排除。
 
 ## 编写文本搜索查询
 
-A new built-in function TEXT\_MATCH has been introduced for using text search in SQL/PQL.
+引入新的内置函数 TEXT\_MATCH 以在 SQL/PQL 中只用文本搜索。
 
 TEXT\_MATCH(text\_column\_name, search\_expression)
 
-* text\_column\_name - name of the column to do text search on.
-* search\_expression - search query
+* text\_column\_name - 要进行文本搜索的列名
+* search\_expression - 查询表达式
 
-We can use TEXT\_MATCH function as part of our queries in the WHERE clause. Examples:
+我们可以在 `WHERE` 子句中使用 TEXT\_MATCH 函数作为查询的一部分，例如：
 
 ```sql
 SELECT COUNT(*) FROM Foo WHERE TEXT_MATCH(...)
 SELECT * FROM Foo WHERE TEXT_MATCH(...)
 ```
 
-We can also use the TEXT\_MATCH filter clause with other filter operators. For example:
+还可以与其他过滤操作一起使用 TEXT\_MATCH 过滤子句，例如：
 
 ```sql
 SELECT COUNT(*) FROM Foo WHERE TEXT_MATCH(...) AND some_other_column_1 > 20000
 SELECT COUNT(*) FROM Foo WHERE TEXT_MATCH(...) AND some_other_column_1 > 20000 AND some_other_column_2 < 100000
 ```
 
-Combining multiple TEXT\_MATCH filter clauses
+合并使用多个 TEXT\_MATCH 过滤子句：
 
 ```sql
 SELECT COUNT(*) FROM Foo WHERE TEXT_MATCH(text_col_1, ....) AND TEXT_MATCH(text_col_2, ...)
 ```
 
-TEXT\_MATCH can be used in WHERE clause of all kinds of queries supported by Pinot
+TEXT\_MATCH 可以用在 Pinot 支持的各种查询的 `WHERE` 子句中：
 
-* Selection query which projects one or more columns
-  * User can also include the text column name in select list
-* Aggregation query
-* Aggregation GROUP BY query
+* 投影一个或多个列的选择查询
+  * 用户还可以在选择列表中包含文本列名
+* 聚合查询
+* 聚合分组查询
 
-The search expression (second argument to TEXT\_MATCH function) is the query string that Pinot will use to perform text search on the column's text index. \_\*\*\_Following expression types are supported
+查询表达式（TEXT\_MATCH 函数的第二个参数）是 Pinot 用于在列的文本索引上执行文本搜索的查询字符串。支持以下表达式类型：
 
-### **Phrase Query**
+### 短语查询
 
-This query is used to do exact match of a given phrase. Exact match implies that terms in the user-specified phrase should appear in the exact same order in the original text document. Note that document is referred to as the column value.
+用来精确匹配给定的短语。精确匹配意味着用户指定的短语中的单词应该在原始文本记录中以完全相同的顺序出现。注意，记录指列值。
 
-Let's take the example of resume text data containing 14 documents to walk through queries. The data is stored in column named SKILLS\_COL and we have created a text index on this column.
+让我们以包含 14 个记录的简历文本数据为例来过一遍短语查询。数据存储在名为 SKILLS\_COL 的列中，我们已经在该列上创建了一个文本索引。
 
 ```
 Java, C++, worked on open source projects, coursera machine learning
@@ -344,7 +342,7 @@ Databases, columnar query processing, Apache Arrow, distributed systems, Machine
 Database engine, OLAP systems, OLTP transaction processing at large scale, concurrency, multi-threading, GO, building large scale systems
 ```
 
-**Example 1 -** Search in SKILL\_COL column to look for documents where each matching document MUST contain phrase "distributed systems" as is
+**Example 1 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含短语 "distributed systems"
 
 ```sql
 SELECT SKILLS_COL 
@@ -352,13 +350,13 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, '"Distributed systems"')
 ```
 
-The search expression is '\\"Distributed systems\\"'
+查询表达式为 `'"Distributed systems"'`
 
-* The search expression is **always specified within single quotes** '\<your expression>'
-* Since we are doing a phrase search, the **phrase should be specified within double quotes** inside the single quotes and the **double quotes should be escaped**
+* search\_expression **总是在单引号中指定** '\<your expression>'
+* 既然我们在做短语搜索，**短语必须在单引号中的双引号中指定**，并且**双引号应该进行转义**
   * '\\"\<your phrase>\\"'
 
-The above query will match the following documents:
+上面的查询会匹配如下记录：
 
 ```
 Distributed systems, Java, C++, Go, distributed query engines for analytics and data warehouses, Machine learning, spark, Kubernetes, transaction processing
@@ -369,17 +367,17 @@ Distributed systems, Apache Kafka, publish-subscribe, building and deploying lar
 Databases, columnar query processing, Apache Arrow, distributed systems, Machine learning, cluster management, docker image building and distribution
 ```
 
-But it won't match the following document:
+但不会匹配：
 
 ```
 Distributed data processing, systems design experience
 ```
 
-This is because the phrase query looks for the phrase occurring in the original document **"as is"**. The terms as specified by the user in phrase should be in the **exact same order in the original document** for the document to be considered as a match.
+这是因为短语查询“**按原样**”查找出现在原始记录中的短语。用户在短语中指定的单词在原始记录中的顺序应完全相同，才能将该记录视为匹配。
 
-**NOTE:** Matching is always done in a case-insensitive manner.
+**注意：** 匹配总是以不区分大小写的方式进行。
 
-**Example 2 -** Search in SKILL\_COL column to look for documents where each matching document MUST contain phrase "query processing" as is
+**Example 2 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含短语 "query processing"
 
 ```sql
 SELECT SKILLS_COL 
@@ -387,20 +385,20 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, '"query processing"')
 ```
 
-The above query will match the following documents:
+上面的查询会匹配如下记录：
 
 ```
 Apache spark, Java, C++, query processing, transaction processing, distributed storage, concurrency, multi-threading, apache airflow
 Databases, columnar query processing, Apache Arrow, distributed systems, Machine learning, cluster management, docker image building and distribution"
 ```
 
-### **Term Query**
+### 单词查询
 
-Term queries are used to search for individual terms
+单词查询用来搜索独立的单词。
 
-**Example 3 -** Search in SKILL\_COL column to look for documents where each matching document MUST contain the term 'java'
+**Example 3 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含单词 'java'
 
-As mentioned earlier, the search expression is always within single quotes. However, since this is a term query, we don't have to use double quotes within single quotes.
+如上所述，查询表达式总是被写在单引号中。因为这是一个单词查询，我们不需要在单引号中使用双引号。
 
 ```sql
 SELECT SKILLS_COL 
@@ -408,11 +406,11 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, 'Java')
 ```
 
-### Composite Query using Boolean Operators
+### 使用布尔运算符的复合查询
 
-Boolean operators AND, OR are supported and we can use them to build a composite query. Boolean operators can be used to combine phrase and term queries in any arbitrary manner
+支持布尔运算符 AND/OR ，并且我们可以使用它们构建一个复杂查询。布尔运算符可以用来以任意方式组合短语和单词查询。
 
-**Example 4 -** Search in SKILL\_COL column to look for documents where each matching document MUST contain phrases "distributed systems" and "tensor flow". This combines two phrases using AND boolean operator
+**Example 4 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含短语 "distributed systems" 和 "tensor flow"。使用 AND 布尔操作符组合两个短语：
 
 ```sql
 SELECT SKILLS_COL 
@@ -420,7 +418,7 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, '"Machine learning" AND "Tensor Flow"')
 ```
 
-The above query will match the following documents:
+上面的查询将匹配如下记录：
 
 ```
 Machine learning, Tensor flow, Java, Stanford university,
@@ -428,7 +426,7 @@ C++, Python, Tensor flow, database kernel, storage, indexing and transaction pro
 CUDA, GPU processing, Tensor flow, Pandas, Python, Jupyter notebook, spark, Machine learning, building high performance scalable systems
 ```
 
-**Example 5 -** Search in SKILL\_COL column to look for documents where each document MUST contain phrase "machine learning" and term 'gpu' and term 'python'. This combines a phrase and two terms using boolean operator
+**Example 5 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含短语 "machine learning" 和单词 'gpu'，'python'。使用布尔操作符 AND 组合一个短语和单词：
 
 ```sql
 SELECT SKILLS_COL 
@@ -436,25 +434,25 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, '"Machine learning" AND gpu AND python')
 ```
 
-The above query will match the following documents:
+上面的查询将匹配如下记录：
 
 ```
 CUDA, GPU, Python, Machine learning, database kernel, storage, indexing and transaction processing, building large scale systems
 CUDA, GPU processing, Tensor flow, Pandas, Python, Jupyter notebook, spark, Machine learning, building high performance scalable systems
 ```
 
-When using Boolean operators to combine term(s) and phrase(s) or both, please note that:
+当使用布尔运算符组合术语和短语或两者时，请注意：
 
-* The matching document can contain the terms and phrases in any order.
-* The matching document may not have the terms adjacent to each other (if this is needed, please use appropriate phrase query for the concerned terms).
+* 匹配的记录可以以任何顺序包含单词和短语。
+* 相匹配的记录中单词可能不相邻（如有需要，请使用适当的短语查询有关单词）。
 
-Use of OR operator is implicit. In other words, if phrase(s) and term(s) are not combined using AND operator in the search expression, OR operator is used by default:
+操作符 OR 的使用是隐式的。换句话说，如果搜索表达式中的短语或术语没有使用 AND 操作符组合起来，是默认使用 OR 操作符连接的。
 
-**Example 6 -** Search in SKILL\_COL column to look for documents where each document MUST contain ANY one of:
+**Example 6 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含以下任一：
 
-* phrase "distributed systems" OR
-* term 'java' OR
-* term 'C++'.
+* 短语 "distributed systems" 或
+* 单词 'java' 或
+* 单词 'C++'
 
 ```sql
 SELECT SKILLS_COL 
@@ -462,14 +460,14 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, '"distributed systems" Java C++')
 ```
 
-We can also do grouping using parentheses:
+还可以使用括号进行分组：
 
-**Example 7 -** Search in SKILL\_COL column to look for documents where each document MUST contain
+**Example 7 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含
 
-* phrase "distributed systems" AND
-* at least one of the terms Java or C++
+* 短语 "distributed systems" 以及
+* Java 或 C++ 中至少一个
 
-In the below query, we group terms Java and C++ without any operator which implies the use of OR. The root operator AND is used to combine this with phrase "distributed systems"
+在下面的查询中，我们在没有使用任何操作符的情况下将单词 Java 和 C++ 进行了分组，而事实上隐式使用了 OR ；外层的操作符 AND 用来组合该分组和短语 "distributed systems" 。
 
 ```sql
 SELECT SKILLS_COL 
@@ -477,11 +475,11 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, '"distributed systems" AND (Java C++)')
 ```
 
-### Prefix Query
+### 前缀查询
 
-Prefix searches can also be done in the context of a single term. We can't use prefix matches for phrases.
+前缀搜索也可以在单个术语的上下文中进行，但我们不能对短语使用前缀匹配。
 
-**Example 8 -** Search in SKILL\_COL column to look for documents where each document MUST contain text like stream, streaming, streams etc
+**Example 8 -** 在 SKILL\_COL 列中搜索，每个匹配记录必须包含如 stream，streaming，streams 等的文本：
 
 ```sql
 SELECT SKILLS_COL 
@@ -489,7 +487,7 @@ FROM MyTable
 WHERE TEXT_MATCH(SKILLS_COL, 'stream*')
 ```
 
-The above query will match the following documents:
+上面的查询将匹配如下记录：
 
 ```
 Distributed systems, Java, realtime streaming systems, Machine learning, spark, Kubernetes, distributed storage, concurrency, multi-threading
@@ -498,15 +496,15 @@ Realtime stream processing, publish subscribe, columnar processing for data ware
 C++, Java, Python, realtime streaming systems, Machine learning, spark, Kubernetes, transaction processing, distributed storage, concurrency, multi-threading, apache airflow
 ```
 
-### Regular Expression Query
+### 正则表达式查询
 
-Phrase and term queries work on the fundamental logic of looking up the terms (aka tokens) in the text index. The original text document (a value in the column with text index enabled) is parsed, tokenized and individual "indexable" terms are extracted. These terms are inserted into the index.
+短语和单词查询的基本逻辑是在文本索引中查找单词（又名 tokens）。原始文本记录（启用了文本索引的列中的值）将被解析、标记化、提取单个“可索引”项并插入到索引中。
 
-Based on the nature of original text and how the text is segmented into tokens, it is possible that some terms don't get indexed individually. In such cases, it is better to use regular expression queries on the text index.
+根据原始文本的性质以及文本划分为标记的规则，有些单词可能不会单独被索引。在这种情况下，最好对文本索引使用正则表达式查询。
 
-Consider server log as an example and we want to look for exceptions. A regex query is suitable for this scenario as it is unlikely that 'exception' is present as an individual indexed token.
+以服务器日志为例，我们希望查找异常。正则表达式查询适用于这种情况，因为 'exception' 不太可能作为单独的索引令牌出现。
 
-Syntax of a regex query is slightly different from queries mentioned earlier. The regular expression is written between a pair of forward slashes (/).
+正则表达式查询的语法与前面提到的查询略有不同。正则表达式被写入一对正斜杠 (/) 之间。
 
 ```sql
 SELECT SKILLS_COL 
@@ -514,27 +512,27 @@ FROM MyTable
 WHERE text_match(SKILLS_COL, '/.*Exception/')
 ```
 
-The above query will match any text document containing exception.
+上面的查询将匹配任何包含 exception 的文本记录。
 
-### Deciding Query Types
+### 选择查询类型
 
-Generally, a combination of phrase and term queries using boolean operators and grouping should allow us to build a complex text search query expression.
+通常，使用布尔运算符和分组组合短语和单词查询允许我们构建复杂的文本搜索查询表达式。
 
-The key thing to remember is that phrases should be used when the order of terms in the document is important and if separating the phrase into individual terms doesn't make sense from end user's perspective.
+关键是记住：如果记录中单词顺序很重要，且从最终用户的角度看将短语分离为单独的单词没有意义时，应该使用短语查询。
 
-An example would be phrase "machine learning".
+短语 "machine learning" 的例子：
 
 ```sql
 TEXT_MATCH(column, '"machine learning"')
 ```
 
-However, if we are searching for documents matching Java and C++ terms, using phrase query "Java C++" will actually result in in partial results (could be empty too) since now we are relying the on the user specifying these skills in the exact same order (adjacent to each other) in the resume text.
+然而，如果我们正在搜索匹配 Java 和 C++ 术语的记录，使用短语查询 "Java C++" 实际上会导致只得到部分结果（也可能结果为空），因为现在我们依赖于用户在简历文本中以完全相同的顺序（并且彼此相邻）指定这些技能。
 
 ```sql
 TEXT_MATCH(column, '"Java C++"')
 ```
 
-Term query using boolean AND operator is more appropriate for such cases
+使用 AND 操作符的单词查询更适合这种场景：
 
 ```sql
 TEXT_MATCH(column, 'Java AND C++')
