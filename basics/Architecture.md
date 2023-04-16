@@ -113,7 +113,7 @@ Pinot 控制器 (controller) 充当集群整体状态和运行状况的驱动。
 对于每个查询，一个集群 (cluster) 的代理 (broker) 执行以下操作:
 
 * 获取根据表配置中定义的路由策略为查询计算的路由。
-* 计算每个服务器上要查询的分段列表。要了解更多信息，请查看[路由](https://github.com/pinot-contrib/pinot-docs/blob/latest/basics/operators/tuning/routing.md)。
+* 计算每个服务器上要查询的分段列表。要了解更多信息，请查看[路由](https://docs.pinot.apache.org/operators/operating-pinot/tuning/routing)。
 * Scatter-Gather: 将请求发送到每个服务器并收集响应。
 * Merge: 合并从每个服务器返回的查询结果。
 * 将查询结果发送给客户端。
