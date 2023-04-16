@@ -7,6 +7,8 @@
 
 * [Concepts](basics/Concepts.md)
 * [Architecture](basics/Architecture.md)
+* [Import Data](basics/import-data/README.md)
+  * [Complex Type (Array, Map) Handling](basics/import-data/complex-type-array-map-handling.md)
 * [Indexing](basics/indexing/README.md)
   * [Forward Index](basics/indexing/forward-index.md)
   * [Inverted Index](basics/indexing/inverted-index.md)
