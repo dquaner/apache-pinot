@@ -244,9 +244,11 @@ The above mechanism can be used to configure text indexes in the following scena
 
 ### 文本解析和标记化
 
-The original text document (a value in the column with text index enabled) is parsed, tokenized and individual "indexable" terms are extracted. These terms are inserted into the index.
+原始的文本记录（一个启用了文本索引的列中的值）会被解析，标记化 (tokenized) ，并且独立的“可索引的”短语会被提取，这些短语会被添加到索引中。
 
 Pinot's text index is built on top of Lucene. Lucene's **standard english text tokenizer** generally works well for most classes of text. We might want to build custom text parser and tokenizer to suit particular user requirements. Accordingly, we can make this configurable for the user to specify on per column text index basis.
+
+Pinot 的文本索引建立在 Lucene 之上。Lucene 的**标准英语文本标记器**通常适用于大多数文本类。我们可能希望构建自定义文本解析器和标记器来满足特定的用户需求。因此，我们可以让用户在每个列文本索引的基础上指定这个可配置的参数。
 
 There is a default set of "stop words" built in Pinot's text index. This is a set of high frequency words in English that are excluded for search efficiency and index size, including:
 
