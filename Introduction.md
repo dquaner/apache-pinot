@@ -1,133 +1,106 @@
 ---
 description: >-
-  Apache Pinot is a real-time distributed OLAP datastore purpose-built for
-  low-latency, high-throughput analytics, and perfect for user-facing analytical
-  workloads.
+  Apache Pinot 是一个实时的分布式 OLAP 数据存储，为低延迟、高吞吐量的分析而构建，并且非常适合面向用户的分析工作负载。
 ---
 
 # Introduction
 
-{% hint style="info" %}
-We'd love to hear from you! [Join us in our Slack channel](https://communityinviter.com/apps/apache-pinot/apache-pinot) to ask questions, troubleshoot, and share feedback.
-{% endhint %}
+Pinot 是一个实时的分布式的在线分析处理（OnLine Analytical Processing, OLAP）数据存储，专门用于提供即使在极高的吞吐量下的超低延迟的分析。它可以**直接从流 (streaming) 数据源，例如 Apache Kafka 和 Amazon Kinesis，获取 (ingest) 数据并且实现实时查询**。它也可以从批 (batch) 数据源，例如 Hadoop HDFS、Amazon S3、Azure ADLS 和 Google Cloud Storage，获取 (ingest) 数据。
 
-Pinot is a real-time distributed online analytical processing (OLAP) datastore, purpose-built to provide ultra low-latency analytics, even at extremely high throughput. It can **ingest directly from streaming data sources – such as Apache Kafka and Amazon Kinesis – and make the events available for querying instantly**. It can also ingest from batch data sources such as Hadoop HDFS, Amazon S3, Azure ADLS, and Google Cloud Storage.
+Pinot 系统的核心是列式 (columnar) 的存储，以及为了实现低延迟而使用的智能索引和预聚合技术。**这使得 Pinot 非常适合面向用户的实时分析**。同时，Pinot 也是其他分析用例的一个很好的选择，比如内部仪表板、异常检测和特定数据探索。
 
-At the heart of the system is a columnar store, with several smart indexing and pre-aggregation techniques for low latency. **This makes Pinot a perfect fit for user-facing realtime analytics**. At the same time, Pinot is also a great choice for other analytical use cases, such as internal dashboards, anomaly detection, and ad hoc data exploration.
+![pinot structure](./images/structure.png)
 
-![](https://gblobscdn.gitbook.com/assets%2F-LtH6nl58DdnZnelPdTc%2F-M69C48fK2BhCoou1REr%2F-M69DbDfcATcZOAgyX7k%2Fpinot-overview-graphic.png?alt=media\&token=3552722e-8d1d-4397-972e-a81917ced182)
+Pinot 设计使得它可以无限的向外扩展，基于集群的大小和预期的每秒查询（QPS）阈值，性能始终保持不变。
 
-Pinot is designed to scale up and out with no upper bound. Performance always remains constant based on the size of your cluster and an expected query per second (QPS) threshold.
+> 通过 YouTube 观看：[What is Apache Pinot? (and User-Facing Analytics) by Tim Berglund](https://youtu.be/_lqdfq2c9cQ)
 
-{% embed url="https://youtu.be/_lqdfq2c9cQ" %}
-What is Apache Pinot? (and User-Facing Analytics) by Tim Berglund
-{% endembed %}
+### 面向用户的实时分析
 
-### User-Facing Real-Time Analytics
+**面向用户的分析**，或面向站点的分析，是指**直接面向产品最终用户的分析工具和应用程序**。在面向用户的分析应用程序中，用户群是应用程序的所有最终用户，而不仅仅是公司中少数进行离线分析的分析师或运行特定查询的数据科学家。每个终端用户在他们的个人设备上收到个性化的分析（**想象一下每秒数十万个查询**）。因为这些查询是由应用程序触发的，不是由人写的，所以规模与应用程序上的活跃用户一样大（**想象一下每秒数百万个事件**）。
 
-**User-facing analytics**, or site-facing analytics, refers to the **analytical tools and applications exposed directly to the end users** of your product. In a user-facing analytics application, the user base is _all_ end users of an app – not just a few analysts doing offline analysis or a handful of data scientists in a company running ad hoc queries. Each end user receives personalized analytics on their personal devices (**think hundreds of thousands of queries per second**). Because these queries are triggered by apps, and not written by people, the scale is as much as the active users on that app (**think millions of events per second**).&#x20;
+这些查询针对所有可能的最新数据，这涉及到另一个方面 — **实时分析**。对某些用例来说，昨天的数据不再有用，数据需要在生成时就可以用于分析（**考虑 1 秒内的延迟**）。
 
-This is for all the freshest possible data, which touches on the other aspect here – **real-time analytics**. For some use cases, data from yesterday is no longer useful. The data needs to be available for analytics as soon as it is generated (**think latencies under one second**).
+### 为什么面向用户的实时分析如此具有挑战性?
 
-### Why is user-facing real-time analytics is so challenging?
+面向用户的实时分析应用程序对底层架构来说意味着什么?
 
-What does the user-facing real-time analytics app described above mean for the underlying infrastructure?
+![Challenges of user-facing real-time analytics](./images/challenges_of_user-facing_real-time_analytics.png)
 
-![Challenges of user-facing real-time analytics](<.gitbook/assets/Screen Shot 2021-04-28 at 2.09.22 PM.png>)
+* 这类应用需要尽可能新的数据，因此系统需要能够**实时地接收 (ingest) 数据，并提供实时查询**。
+* 这类应用的数据往往是来自多个来源的广泛的操作事件数据，所以数据**以非常高的速度进入，而且往往是高维的**。
+* 查询是由终端用户与应用的交互触发的 — 需要支持**每秒数十万查询**，**任意查询模式**和**以毫秒为单位的延迟**以获得良好的用户体验。
+* 这类应用还需要具有**可扩展性**、可靠性、高可用性和低成本。
 
-* Such apps require the freshest possible data, so the system needs to be able to **ingest data in real time and make it available for querying, also in real time**.
-* Data for apps like this tends to be event data for a wide range of actions and from multiple sources, so the data comes in at a **very high velocity and tends to be highly dimensional**.
-* Queries are triggered by end users interacting with apps – with **queries per second in hundreds of thousands**, with **arbitrary query patterns,** and **latencies are expected to be in milliseconds** for good user-experience.&#x20;
-* This type of app also needs to be **scalable**, reliable, highly available, and having a low cost to serve.
+> 通过 YouTube 观看：  
+面向用户的实时分析和 Pinot 的功能 — [Using Kafka and Pinot for Real-Time User-Facing Analytics](https://www.youtube.com/watch?v=L5b_OJVOJKo&t=576s)  
+Pinot 如何处理面向用户的分析中所面临的一些挑战 — [Building Latency Sensitive User-facing Analytics via Apache Pinot](https://youtu.be/JV0WxBwJqKE)
 
-Watch the video below to learn more about user-facing real-time analytics and Pinot's capabilities.
+### 使用 Pinot 的公司
 
-{% embed url="https://www.youtube.com/watch?v=L5b_OJVOJKo&t=576s" %}
-Using Kafka and Pinot for Real-Time User-Facing Analytics
-{% endembed %}
+LinkedIn，Pinot 的发源地，目前拥有最大的 Pinot 部署之一，支持超过 50 个面向用户的应用程序（如查看我的个人资料，人才分析，公司分析，广告分析等）。在 LinkedIn 中，Pinot 还充当后端来可视化和监控 10,000 多个业务指标。
 
-Here's another great video that goes into the details of how Pinot tackles some of the challenges faced in handling a user-facing analytics workload.
+Pinot 还支持其他几个大公司的各种实时分析用例，包括 Uber、沃尔玛、WePay、Factual、微博等。使用 Pinot 的公司的详细名单可以在[这里](https://pinot.apache.org/who\_uses)找到。
 
-{% embed url="https://youtu.be/JV0WxBwJqKE" %}
-Building Latency Sensitive User-facing Analytics via Apache Pinot
-{% endembed %}
+### 特性
 
+* 一个具有各种压缩方案（如运行长度和固定的位长度）的面向列的数据库
+* 可插拔的[索引技术](https://github.com/dquaner/apache-pinot/blob/main/basics/Indexing.md)
+* 能够基于查询和分段元数据优化查询和执行计划
+* 等流的近实时接收，以及来自 Hadoop、S3、Azure、GCS 等源的批量接收
+* 类 SQL 语言，支持对数据的选择、聚合、过滤、分组、排序和唯一 (distinct) 查询
+* 支持多值 (multi-valued) 字段
+* 水平扩展和容错
 
+## 什么时候应该使用 Pinot ?
 
-### **Companies using Pinot**
+Pinot 设计用于执行低延迟的 OLAP 查询，它在需要快速分析的地方工作得很好，比如对不可变 (immutable) 数据进行聚合。
 
-LinkedIn, where Pinot originated, currently has one of the largest Pinot deployments, powering more than 50+ user-facing applications (such as Viewed My Profile, Talent Analytics, Company Analytics, Ad Analytics and many more). At LinkedIn, Pinot also serves as the backend to visualize and monitor 10,000+ business metrics.
+**面向用户的分析产品**
 
-Pinot also powers a wide variety of real time analytical use cases across several other big players, including Uber, Walmart, WePay, Factual, Weibo and more. A detailed list of companies using Pinot can be found [here](https://pinot.apache.org/who\_uses).​
+Pinot 是面向用户的分析产品的完美选择。Pinot 最初是在 LinkedIn 上构建的，用于支持富交互的实时分析应用程序，如 [谁看了我](https://www.linkedin.com/me/profile-views/urn:li:wvmp:summary/)，[公司分析](https://www.linkedin.com/company/linkedin/insights/)，[人才见解](https://business.linkedin.com/talent-solutions/talent-insights) 等等。[UberEats Restaurant Manager](https://eng.uber.com/restaurant-manager/) 是另一个用 Pinot 构建的面向用户的分析应用。
 
-### Features
+**用于 business metrics 的 real-time dashboard**
 
-* A column-oriented database with various compression schemes, such as run length and fixed bit length
-* Pluggable [indexing technologies](https://docs.pinot.apache.org/basics/indexing)
-* Ability to optimize query/execution plan based on query and segment metadata
-* Near real-time ingestion from streams such as Kafka and Kinesis and batch ingestion from sources such as Hadoop, S3, Azure, GCS
-* SQL-like language that supports selection, aggregation, filtering, grouping, ordering, and distinct queries on data
-* Support for multi-valued fields
-* Horizontally scalable and fault-tolerant
+Pinot 还可以用于在大规模多维数据上执行 **slice and dice**、**drill down**、**roll up**、**pivot** 等典型的分析操作。例如，在 LinkedIn，Pinot 为包含数千个业务指标的 dashboards 提供支持。还可以连接各种 BI 工具，如 Superset、Tableau 或 PowerBI，以可视化 Pinot 中的数据。
 
-## When should I use it?
+Pinot 与 Superset 的连接说明可以在[这里](https://docs.pinot.apache.org/integrations/superset)找到。
 
-Pinot is designed to execute OLAP queries with low latency. It works well where you need fast analytics, such as aggregations, on immutable data.
+**异常检测**
 
-**User-facing analytics products**
+除了将 Pinot 中的数据可视化之外，还可以运行机器学习算法来检测存储在 Pinot 中的数据中的异常情况。有关如何使用 Pinot 进行异常检测和根本原因分析的更多信息，请参阅 [ThirdEye](https://docs.pinot.apache.org/integrations/thirdeye) 。
 
-Pinot is the perfect choice for user-facing analytics products. Pinot was originally built at LinkedIn to power rich interactive real-time analytics applications, such as [Who Viewed Profile](https://www.linkedin.com/me/profile-views/urn:li:wvmp:summary/), [Company Analytics](https://www.linkedin.com/company/linkedin/insights/), [Talent Insights](https://business.linkedin.com/talent-solutions/talent-insights), and many more. [UberEats Restaurant Manager](https://eng.uber.com/restaurant-manager/) is another example of a customer-facing analytics app built with Pinot.&#x20;
+### 入门常见问题
 
-**Real-time dashboard for business metrics**
+#### **Pinot 是数据仓库还是数据库 ?**
 
-Pinot can be also be used to perform typical analytical operations such as **slice** **and** **dice**, **drill down**, **roll up**, and **pivot** on large scale multi-dimensional data. For instance, at LinkedIn, Pinot powers dashboards for thousands of business metrics. You can also connect various BI tools such as Superset, Tableau, or PowerBI to visualize data in Pinot.
+虽然 Pinot 不符合数据库产品的典型模式，但最好根据分析师、数据科学家或应用程序开发人员的角色来理解它。
 
-Instructions to connect Pinot with Superset can be found [here](https://docs.pinot.apache.org/integrations/superset).
+**企业业务智能化**
 
-**Anomaly Detection**
+对于分析师和数据科学家来说，Pinot 最好被视为一个高度可扩展的商业智能数据平台。从这个角度来看，Pinot 将大数据平台与数据仓库的传统角色融合在一起，使其成为分析和报告的合适替代品。
 
-In addition to visualizing data in Pinot, one can run machine learning algorithms to detect anomalies in the data stored in Pinot. See [ThirdEye](https://docs.pinot.apache.org/integrations/thirdeye) for more information on how to use Pinot for anomaly detection and root cause analysis.[\
-](https://docs.pinot.apache.org/basics/concepts)
+**企业应用开发**
 
-### Frequently asked questions when getting started
+对于应用程序开发人员来说，Pinot 最好被视为一个不可变的聚合存储，它从流数据源（如 Kafka）中获取事件，并使其可用于使用 SQL 进行查询。
 
-#### Is Pinot a data warehouse or a database? <a href="#is-pinot-a-data-warehouse-or-a-database" id="is-pinot-a-data-warehouse-or-a-database"></a>
+与微服务架构一样，数据封装最终要求每个应用程序提供自己的数据存储，而不是共享一个 OLTP 数据库进行读写。在这种情况下，查询一个域的完整视图变得很困难，因为它存储在许多不同的数据库中。就性能而言，这是代价高昂的，因为它需要跨多个微服务连接，这些微服务在 REST API 下通过 HTTP 公开它们的数据。为了防止这种情况，可以使用 Pinot 将微服务架构中的所有数据聚合到一个易于查询的域视图中。
 
-While Pinot doesn't match the typical mold of a database product, it is best understood based on your role as either an analyst, data scientist, or application developer.
+Pinot [tenants](https://docs.pinot.apache.org/basics/components/tenant) 阻止了在微服务团队之间共享数据库表所有权的任何可能性。开发人员可以根据自己的用例和需求，从多个记录系统中创建自己的数据查询模型。与所有聚合存储一样，查询模型最终是一致且不可变的。
 
-**Enterprise business intelligence**
+### 入门指南
 
-For analysts and data scientists, Pinot is best viewed as a highly-scalable data platform for business intelligence. In this view, Pinot converges big data platforms with the traditional role of a data warehouse, making it a suitable replacement for analysis and reporting.
+如果你刚刚接触 Pinot 并且想要通过示例学习如何使用，可以查看：
 
-**Enterprise application development**
+- [Getting Started](https://docs.pinot.apache.org/basics/getting-started)
 
-For application developers, Pinot is best viewed as an immutable aggregate store that sources events from streaming data sources, such as Kafka, and makes it available for a query using SQL.
+如果你想开始学习将数据导入 Pinot，请查看我们基于[插件](https://docs.pinot.apache.org/developers/plugin-architecture)的批量导入和流接收指南：
 
-As is the case with a microservice architecture, data encapsulation ends up requiring each application to provide its own data store, as opposed to sharing one OLTP database for reads and writes. In this case, it becomes difficult to query the complete view of a domain because it becomes stored in many different databases. This is costly in terms of performance since it requires joins across multiple microservices that expose their data over HTTP under a REST API. To prevent this, Pinot can be used to aggregate all of the data across a microservice architecture into one easily queryable view of the domain.
+- [Import Data](https://docs.pinot.apache.org/basics/data-import)
 
-Pinot [tenants](https://docs.pinot.apache.org/basics/components/tenant) prevent any possibility of sharing ownership of database tables across microservice teams. Developers can create their own query models of data from multiple systems of record depending on their use case and needs. As with all aggregate stores, query models are eventually consistent and immutable.
+### 查询示例
 
-## Get started
-
-Our documentation is structured to let you quickly get to the content you need and is organized around the different concerns of users, operators, and developers.&#x20;
-
-### Starter guides
-
-If you're new to Pinot and want to learn things by example, take a look at our Getting Started section:
-
-{% content-ref url="basics/getting-started/" %}
-[getting-started](basics/getting-started/)
-{% endcontent-ref %}
-
-To start importing data into Pinot, check out our guides on batch import and stream ingestion based on our [plugin architecture](developers/plugin-architecture/):
-
-{% content-ref url="basics/data-import/" %}
-[data-import](basics/data-import/)
-{% endcontent-ref %}
-
-### Query example
-
-Pinot works very well for querying time series data with many dimensions and metrics over a vast unbounded space of records that scales linearly on a per-node basis. Filters and aggregations are both easy and fast.
+Pinot 非常适用于在一个巨大无界的记录上查询具有多个维度和指标的时间序列数据，这些记录空间在每个节点上呈线性扩展。过滤和聚合查询可以做到既简单又快速。
 
 ```sql
 SELECT sum(clicks), sum(impressions) FROM AdAnalyticsTable
@@ -138,42 +111,17 @@ SELECT sum(clicks), sum(impressions) FROM AdAnalyticsTable
        daysSinceEpoch TOP 100
 ```
 
-Pinot supports SQL for querying read-only data. Learn more about querying Pinot for time series data in our [PQL (Pinot Query Language)](users/user-guide-query/querying-pinot.md) guide.
+Pinot 支持 SQL 查询只读数据。在我们的 [PQL (Pinot Query Language)](https://docs.pinot.apache.org/users/user-guide-query/querying-pinot) 指南中了解更多关于查询 Pinot 时间序列数据的信息。
 
-## Installation
+## 安装
 
-Pinot can be deployed to and operated on a cloud provider or a local or virtual machine. You can get started either with a bare-metal installation or a Kubernetes one (either locally or in the cloud). To get immediately started with Pinot, check out these quick start guides for bootstrapping a Pinot cluster using Docker or Kubernetes.
+Pinot 可以部署到云、本地或虚拟机并在其上进行操作。你可以从 bare-metal 安装或 Kubernetes 安装（本地或云中）开始。要立即开始使用 Pinot，请查看如下使用 Docker 或 Kubernetes 部署 Pinot 集群的快速开始指南。
 
-### Standalone mode
+### 单例模式
 
-{% content-ref url="basics/getting-started/running-pinot-locally.md" %}
-[running-pinot-locally.md](basics/getting-started/running-pinot-locally.md)
-{% endcontent-ref %}
+- [Running Pinot locally](https://docs.pinot.apache.org/basics/getting-started/running-pinot-locally)
+- [Running Pinot in Docker](https://docs.pinot.apache.org/basics/getting-started/running-pinot-in-docker)
 
-{% content-ref url="basics/getting-started/running-pinot-in-docker.md" %}
-[running-pinot-in-docker.md](basics/getting-started/running-pinot-in-docker.md)
-{% endcontent-ref %}
+### 集群模式
 
-### Cluster mode
-
-{% content-ref url="basics/getting-started/kubernetes-quickstart.md" %}
-[kubernetes-quickstart.md](basics/getting-started/kubernetes-quickstart.md)
-{% endcontent-ref %}
-
-{% content-ref url="./" %}
-[.](./)
-{% endcontent-ref %}
-
-## Learn
-
-For a high-level overview that explains how Pinot works, check out the Concepts section:
-
-{% content-ref url="basics/concepts.md" %}
-[concepts.md](basics/concepts.md)
-{% endcontent-ref %}
-
-To understand the distributed systems architecture that explains Pinot's operating model, take a look at our basic architecture section:
-
-{% content-ref url="basics/architecture.md" %}
-[architecture.md](basics/architecture.md)
-{% endcontent-ref %}
+- [Running in Kubernetes](https://docs.pinot.apache.org/basics/getting-started/kubernetes-quickstart)
