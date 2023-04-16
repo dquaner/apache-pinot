@@ -2,11 +2,11 @@
 
 Pinot 旨在为大型数据集提供低延迟查询。为了实现这一性能，Pinot 以列 (columnar) 格式存储数据，并添加额外的索引来执行快速过滤 (filtering) 、聚合 (aggregation) 和分组 (group by) 。
 
-原始数据 (raw data) 被分解成小的数据碎片，每个碎片被转换成一个称为分段 ([segment](https://docs.pinot.apache.org/pinot-components/segment)) 的单位。一个或多个分段一起形成一个表 ([table](https://docs.pinot.apache.org/pinot-components/table)) ，表是使用 [SQL/PQL](https://docs.pinot.apache.org/user-guide/user-guide-query/pinot-query-language) 查询 Pinot 的逻辑容器。
+原始数据 (Raw data) 被分解成小的数据碎片，每个碎片被转换成一个称为分段 ([segment](https://docs.pinot.apache.org/pinot-components/segment)) 的单位。一个或多个分段一起形成一个表 ([table](https://docs.pinot.apache.org/pinot-components/table)) ，表是使用 [SQL/PQL](https://docs.pinot.apache.org/user-guide/user-guide-query/pinot-query-language) 查询 Pinot 的逻辑容器。
 
 Pinot 使用了各种各样的术语，这些术语既包括数据[存储模型](#Pinot-Storage-Model)的抽象，也包括驱动系统功能的基础设施[组件](#Pinot-Components)。
 
-## Pinot Storage Model
+## Pinot 存储模型
 
 ![Pinot Storage Model Abstraction](./images/Concepts_pinot-storage-model.jpeg)
 
@@ -32,7 +32,7 @@ Pinot 有一个支持横向扩展的分布式系统架构。Pinot 预计一张�
 
 > 自动伸缩 (Auto-scaling) 也是可以实现的，但是，当查询负载在不可预测的终端用户使用场景中变化时，建议设置一定数量的节点以保持 QPS 一致。
 
-## Pinot Components
+## Pinot 组件
 
 ![Pinot Components](./images/Concepts_pinot-components.svg)
 
