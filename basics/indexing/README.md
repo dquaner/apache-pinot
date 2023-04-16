@@ -6,32 +6,32 @@ description: Pinot 中的索引技术。
 
 Pinot 支持以下索引技术：
 
-* [Forward Index](./#正排索引)
+* [Forward Index](forward-index.md)
   * Dictionary-encoded forward index with bit compression
   * Raw value forward index
   * Sorted forward index with run-length encoding
-* [Inverted Index](./#倒排索引)
+* [Inverted Index](inverted-index.md)
   * Bitmap inverted index
   * Sorted inverted index
 * Star-tree Index
-* [Bloom Filter](./#布隆过滤器)
-* [Range Index](./#范围索引)
+* [Bloom Filter](bloom-filter.md)
+* [Range Index](range-index.md)
 * Text Index
-  * [Native Text Index](./#本地文本索引)
-  * [Text Search Support](./#文本搜索支持)
+  * [Native Text Index](native-text-index.md)
+  * [Text Search Support](text-search-support.md)
 * Geospatial
-* [JSON Index](./#JSON-Index)
-* [Timestamp Index](./#时间戳索引)
+* [JSON Index](json-index.md)
+* [Timestamp Index](timestamp-index.md)
 
-每一种索引技术在不同的场景中都有各自的优势。默认情况下，Pinot 为每一列创建一个字典编码正排索引。
+每一种索引技术在不同的场景中都有各自的优势。默认情况下，Pinot 为每一列创建一个**字典编码正排索引**。
 
 ## 启用索引
 
 要为一个 Pinot 表创建索引有两种方式：
 
-### 1. 在 Pinot 分段生成期间，作为摄取 (ingestion) 的一部分
+### 1. 在 Pinot Segment 生成期间，作为 ingestion 的一部分
 
-通过在表配置中指定希望添加索引的列名来启用索引。可以在 [Table Config](https://docs.pinot.apache.org/configuration-reference/table) 部分以及下面小节中查看如何配置各种类型索引的更多细节。
+通过在表配置中指定希望添加索引的列名来启用索引。可以在 [Table Config](https://docs.pinot.apache.org/configuration-reference/table) 部分以及上面的各小节中查看如何配置各种类型索引的更多细节。
 
 ### 2. 动态地添加或删除索引
 
@@ -39,7 +39,7 @@ Pinot 支持以下索引技术：
 
 例如，如果你已经为 `foo` 列添加了倒排索引，并且现在想为 `bar` 列也添加相同的索引，你可以将表配置从下面这样：
 
-```
+```json
 "tableIndexConfig": {
     "invertedIndexColumns": ["foo"],
     ...
@@ -48,7 +48,7 @@ Pinot 支持以下索引技术：
 
 更新成这样：
 
-```
+```json
 "tableIndexConfig": {
     "invertedIndexColumns": ["foo", "bar"],
     ...
@@ -57,7 +57,7 @@ Pinot 支持以下索引技术：
 
 更新的索引配置需要在调用了 reload API 之后生效。这个 API 通过 Helix 将重新加载的信息发送到所有服务器，作为从本地分段添加或删除索引的一部分。这个改变不需要任何停机时间并且对查询完全透明。
 
-当添加一个索引时，只有这个新的索引会被创建并且添加到现有的分段上。当删除一个索引时，该索引相关的状态会被从 Pinot 服务器一起清除。
+当添加一个索引时，只有这个新的索引会被创建并且添加到现有的分段上；当删除一个索引时，该索引所有相关的状态会被从 Pinot 服务器一起清除。
 
 你可以在 Swagger 页面的 Segments 部分中找到 reload API ：
 

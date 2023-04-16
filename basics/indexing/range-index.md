@@ -2,7 +2,7 @@
 
 范围索引帮助你在涉及范围筛选的查询中获得更好的性能。它将对如下的查询有帮助：
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM baseballStats 
 WHERE hits > 11

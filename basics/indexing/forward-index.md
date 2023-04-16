@@ -2,17 +2,17 @@
 
 每一列的值都存储在一个正排索引中，正排索引有三种类型:
 
-*   [Dictionary encoded forward index](./#位压缩字典编码正排索引默认)
+*   [Dictionary encoded forward index](forward-index.md#wei-ya-suo-zi-dian-bian-ma-zheng-pai-suo-yin-mo-ren)
 
     构建一个将唯一 id 映射到列中的每个唯一值的字典，以及包含位压缩 id 的正排索引。
-*   [Sorted forward index](./#运行时长度编码排序正排索引)
+*   [Sorted forward index](forward-index.md#yun-hang-chang-du-bian-ma-pai-xu-zheng-pai-suo-yin)
 
     构建一个将每个唯一值映射到一个 start-end document id 对的字典，以及在字典编码上的正排索引。
-*   [Raw value forward index](./#原始值正排索引)
+*   [Raw value forward index](forward-index.md#yuan-shi-zhi-zheng-pai-suo-yin)
 
     直接根据列值构建正排索引。
 
-为了节省分段存储空间，现在可以在创建表时[禁用](./#禁用正排索引)正排索引。
+为了节省分段存储空间，现在可以在创建表时[禁用](forward-index.md#jin-yong-zheng-pai-suo-yin)正排索引。
 
 ## 位压缩字典编码正排索引（默认）
 
@@ -22,23 +22,23 @@
 
 而对 `colB` 来说，可以看到该列没有重复的数据，在列中有很多唯一值的情况下，字典编码的压缩作用就不明显了；并且对于 `string` 类型，Pinot 选择最长字符串的长度作为字典的定长数组的值的长度，因此如果一个字符串列有大量的唯一值，填充开销就会很高。
 
-![dictionary encoded forward index](../images/Indexing\_dictionary-encoded-forward-index-with-bit-compression.webp)
+![Dictionary encoded forward index](../images/Indexing\_dictionary-encoded-forward-index-with-bit-compression.webp)
 
-## 运行时长度编码排序正排索引
+## 运行长度编码排序正排索引
 
 当一个列被物理排序时，Pinot 在字典编码的基础上使用运行时长度编码排序正排索引。Pinot 将为每个值存储一对开始和结束文档 id ，而不是为每个文档 id 保存字典 id 。
 
-![sorted forward index](../images/Indexing\_sorted-forward-index.png)
+![Sorted forward index](../images/Indexing\_sorted-forward-index.png)
 
 为简单起见，上图不包括字典编码层。
 
 排序正排索引同时具有良好的压缩和数据局部性的优点。排序正排索引也可以用作倒排索引。
 
-## Real-time tables
+### Real-time tables
 
 在表配置中设置排序索引：
 
-```
+```json
 {
     "tableIndexConfig": {
         "sortedColumn": [
@@ -51,17 +51,17 @@
 
 > **注意：** 一个 Pinot 表只能有一个排序的列。
 
-实时数据摄取将在生成分段 (segment) 时根据 `sortedColumn` 对数据进行排序 - 你不需要预先对数据进行排序。
+实时数据接收将在生成分段 (segment) 时根据 `sortedColumn` 对数据进行排序 - 你不需要预先对数据进行排序。
 
 当提交一个分段时，Pinot 将传递每个列中的数据，并为包含排序数据的所有列创建一个排序索引，即使它们没有指定为 `sortedColumn` 。
 
-## Offline tables
+### Offline tables
 
-对于离线数据摄取，Pinot 将传递每个列中的数据，并为包含已排序数据的列创建排序索引。这意味着，如果你希望某一列具有排序索引，则需要在将数据摄取到 Pinot 之前按该列对数据进行排序。
+对于离线数据接收，Pinot 将传递每个列中的数据，并为包含已排序数据的列创建排序索引。这意味着，如果你希望某一列具有排序索引，则需要在将数据摄取到 Pinot 之前按该列对数据进行排序。
 
-如果你正在摄取多个分段 (segments) 的数据，需要确保数据在每个段内已排好序 - 你不需要跨分段对数据进行排序。
+如果你正在接收多个分段 (segments) 的数据，需要确保数据在每个段内已排好序 - 你不需要跨分段对数据进行排序。
 
-## 检查排序状态
+### 检查排序状态
 
 你可以运行以下命令查看分段中某列的排序状态：
 
@@ -72,7 +72,7 @@ column.memberId.isSorted = true
 
 另外，对于离线表以及实时表中的已提交段，你可以从 `getServerMetadata` 端点检索排序状态。以 [Batch Quick Start](https://docs.pinot.apache.org/basics/getting-started/quick-start#batch) 为例:
 
-```
+```bash
 curl -X GET \
   "http://localhost:9000/segments/baseballStats/metadata?columns=playerID&columns=teamID" \
   -H "accept: application/json" 2>/dev/null | \
@@ -98,7 +98,7 @@ curl -X GET \
 
 可以在 [table config](https://docs.pinot.apache.org/configuration-reference/table) 中配置原始值正排索引：
 
-```
+```json
 {
     "tableIndexConfig": {
         "noDictionaryColumns": [
@@ -123,7 +123,7 @@ curl -X GET \
 
 ## 禁用正排索引
 
-一般来说，正排索引是所有磁盘分段 (segment) 文件格式中所有列上的强制索引。但是，某些列只作为所有查询的 `WHERE` 子句中的筛选使用。在这种情况下，正排索引是不必要的，因为分段中的其他索引和结构可以提供所需的 SQL 查询功能。正排索引在这种情况下只会占用额外的存储空间，理想情况下可以将其释放。
+一般来说，正排索引是所有磁盘分段 (segment) 文件格式中所有列上的强制索引。但是，**某些列只作为所有查询的** `WHERE` **子句中的筛选使用**，在这种情况下，正排索引是不必要的，因为分段中的其他索引和结构可以提供所需的 SQL 查询功能。正排索引在这种情况下只会占用额外的存储空间，理想情况下可以将其释放。
 
 因此，为了给用户提供一个节省存储空间的选项，Pinot 现在可以选择禁用正排索引，但是有以下限制：
 
@@ -161,47 +161,47 @@ curl -X GET \
 >
 > 我们将在未来努力去除第二个不变量。
 
-## 不支持的查询
+### 不支持的查询
 
 假如禁用了列 `columnA` 的正排索引将导致如下的查询失败：
 
-**Select**
+#### **Select**
 
 即使在 `columnA` 上添加了筛选器 (filters) ，禁用了正排索引的列也不能出现在 `SELECT` 子句中。
 
 失败示例：
 
-```SQL
+```sql
 SELECT columnA
 FROM myTable
 WHERE columnA = 10
 ```
 
-```SQL
+```sql
 SELECT *
 FROM myTable
 ```
 
-**Group By & Order By**
+#### **Group By & Order By**
 
 在 `GROUP BY` 和 `ORDER BY` 子句中不能出现禁用了正排索引的列。它们也不能成为 `HAVING` 从句的一部分。
 
 失败示例：
 
-```SQL
+```sql
 SELECT SUM(columnB)
 FROM myTable
 GROUP BY columnA
 ```
 
-```SQL
+```sql
 SELECT SUM(columnB), columnA
 FROM myTable
 GROUP BY columnA
 ORDER BY columnA
 ```
 
-```SQL
+```sql
 SELECT MIN(columnA)
 FROM myTable
 GROUP BY columnB
@@ -209,38 +209,38 @@ HAVING MIN(columnA) > 100
 ORDER BY columnB
 ```
 
-**Aggregation Queries**
+#### **Aggregation Queries**
 
 当正排索引被禁用时，聚合函数的一个子集可以工作，例如 `MIN` ，`MAX` ，`DISTINCTCOUNT` ，`DISTINCTCOUNTHLL` 等等；其他聚合函数将不能工作，如下面所示。
 
 失败示例：
 
-```SQL
+```sql
 SELECT SUM(columnA), AVG(columnA)
 FROM myTable
 ```
 
-```SQL
+```sql
 SELECT MAX(ADD(columnA, columnB))
 FROM myTable
 ```
 
-**Distinct**
+#### **Distinct**
 
 禁用正排索引的列不能出现在 `SELECT DISTINCT` 子句中。
 
 失败示例：
 
-```SQL
+```sql
 SELECT DISTINCT columnA
 FROM myTable
 ```
 
-**Range Queries**
+#### **Range Queries**
 
 要在筛选 (filter) 子句包含 `>` 、`<` 、`>=` 、`<=` 等操作符的单值列上运行查询，必须提供版本2的范围索引。如果没有范围索引，下面的查询将失败：
 
-```SQL
+```sql
 SELECT columnB
 FROM myTable
 WHERE columnA > 1000

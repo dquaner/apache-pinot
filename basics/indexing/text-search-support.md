@@ -1,3 +1,7 @@
+---
+description: 本页讨论了 Pinot 对文本搜索功能的支持。
+---
+
 # Text Search Support
 
 ## 为什么需要文本搜索？
@@ -6,7 +10,7 @@ Pinot 通过在 non-BLOB 列上的索引支持超快的查询处理。使用了�
 
 例如对下面的查询很有帮助：
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM Foo 
 WHERE STRING_COL = 'ABCDCD' 
@@ -19,7 +23,7 @@ AND INT_COL > 2000
 
 在 0.3.0 版本中，我们增加了对文本索引的支持，以高效地对类型为大的文本 BLOB 的 `STRING` 列进行任意搜索。这可以通过使用内置函数 `TEXT_MATCH` 来实现。
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM Foo 
 WHERE TEXT_MATCH (<column_name>, '<search_expression>')
@@ -39,7 +43,7 @@ WHERE TEXT_MATCH (<column_name>, '<search_expression>')
 
 理想情况下，文本搜索应该用于：由于每个列值都是相当大的文本，导致执行标准过滤器操作 (EQUALITY, RANGE, BETWEEN) 不能满足需求的 `STRING` 列。
 
-## Apache 访问日志
+### Apache 访问日志
 
 考虑以下来自Apache访问日志的片段，日志中的每一行都由任意数据（IP地址、url、时间戳、符号等）组成，且每一行都表示一个列值，这样的数据很适合进行文本搜索。
 
@@ -63,7 +67,7 @@ WHERE TEXT_MATCH (<column_name>, '<search_expression>')
 
 **计算 GET 请求的数量**
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(ACCESS_LOG_COL, 'GET')
@@ -71,7 +75,7 @@ WHERE TEXT_MATCH(ACCESS_LOG_COL, 'GET')
 
 **计算 `/administrator/index.php` 的 POST 请求数量**
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(ACCESS_LOG_COL, 'post AND administrator AND index')
@@ -79,13 +83,13 @@ WHERE TEXT_MATCH(ACCESS_LOG_COL, 'post AND administrator AND index')
 
 **计算使用 Firefox 浏览器发出的 `/administrator/index.php` 的 POST 请求数量**
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(ACCESS_LOG_COL, 'post AND administrator AND index AND firefox')
 ```
 
-## 简历文本
+### 简历文本
 
 考虑另一个简单的简历文本的例子，文件中的每一行都代表不同候选人简历中的技能数据。
 
@@ -114,7 +118,7 @@ Realtime stream processing, publish subscribe, columnar processing for data ware
 
 这是一个短语搜索，在文本中寻找短语 "machine learning" 和 "gpu processing" 的精确匹配，但不要求两者的顺序。
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(SKILLS_COL, '"Machine learning" AND "gpu processing"')
@@ -124,13 +128,13 @@ WHERE TEXT_MATCH(SKILLS_COL, '"Machine learning" AND "gpu processing"')
 
 精确匹配 "distributed systems" 和其他术语的组合搜索。
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(SKILLS_COL, '"distributed systems" AND (Java C++)')
 ```
 
-## 查询日志
+### 查询日志
 
 考虑一个日志文件片段，其中包含数据库处理的 SQL 查询。文件中的每一行（每条查询）代表了 Pinot 表中 `QUERY_LOG_COL` 列的一个列值。
 
@@ -153,7 +157,7 @@ SELECT count(dimensionCol2) FROM FOO WHERE dimensionCol1 = 18616904 AND timestam
 
 **计算包含 "GROUP BY" 的查询数量**
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(QUERY_LOG_COL, '"group by"')
@@ -161,7 +165,7 @@ WHERE TEXT_MATCH(QUERY_LOG_COL, '"group by"')
 
 **计算包含 SELECT count... 模式的查询数量**
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(QUERY_LOG_COL, '"select count"')
@@ -169,13 +173,13 @@ WHERE TEXT_MATCH(QUERY_LOG_COL, '"select count"')
 
 **计算在 timestamp 列上使用了 BETWEEN 过滤并且使用了 GROUP BY 的查询数量**
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM MyTable 
 WHERE TEXT_MATCH(QUERY_LOG_COL, '"timestamp between" AND "group by"')
 ```
 
-后续[章节](./#编写文本搜索查询)会详细介绍关于每种查询的几个具体示例，以及使用 Pinot 编写文本搜索查询的分步指南。
+后续[章节](text-search-support.md#bian-xie-wen-ben-sou-suo-cha-xun)会详细介绍关于每种查询的几个具体示例，以及使用 Pinot 编写文本搜索查询的分步指南。
 
 ## 当前限制
 
@@ -187,7 +191,7 @@ WHERE TEXT_MATCH(QUERY_LOG_COL, '"timestamp between" AND "group by"')
 
 在即将发布的版本中，后面两个限制将很快被放松。
 
-## 与其它索引共存
+### 与其它索引共存
 
 目前，Pinot 中的列可以是字典编码，也可以是 RAW 存储。此外，我们可以在字典编码的列上创建倒排索引，也可以在字典编码的列上创建排序索引。
 

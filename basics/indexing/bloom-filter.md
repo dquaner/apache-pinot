@@ -4,7 +4,7 @@ Bloom Filter 帮助剔除那些不包含任何满足 `EQUALITY` 谓词的条目�
 
 它在如下查询中有用：
 
-```SQL
+```sql
 SELECT COUNT(*) 
 FROM baseballStats 
 WHERE playerID = 12345
