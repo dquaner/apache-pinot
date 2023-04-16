@@ -1,6 +1,5 @@
 ---
-description: >-
-  Apache Pinot 是一个实时的分布式 OLAP 数据存储，为低延迟、高吞吐量的分析而构建，并且非常适合面向用户分析的工作负载。
+description: Apache Pinot 是一个实时的分布式 OLAP 数据存储，为低延迟、高吞吐量的分析而构建，并且非常适合面向用户的分析工作负载。
 ---
 
 # Introduction
@@ -9,12 +8,12 @@ Pinot 是一个实时的分布式的在线分析处理（OnLine Analytical Proce
 
 Pinot 系统的核心是列式 (columnar) 的存储，以及为了实现低延迟而使用的智能索引和预聚合技术。**这使得 Pinot 非常适合面向用户的实时分析**。同时，Pinot 也是内部仪表板、异常检测和特定数据探索等其他分析场景的一个很好的选择。
 
-![](./images/structure.png)
+![](images/structure.png)
 
 Pinot 的设计使得它可以无限的向外扩展，基于集群的大小和预期的每秒查询（QPS）阈值，性能始终保持不变。
 
-> **在 YouTube 中观看**  
-[What is Apache Pinot? (and User-Facing Analytics) by Tim Berglund](https://youtu.be/_lqdfq2c9cQ)
+> **在 YouTube 中观看**\
+> [What is Apache Pinot? (and User-Facing Analytics) by Tim Berglund](https://youtu.be/\_lqdfq2c9cQ)
 
 ### 面向用户的实时分析
 
@@ -26,16 +25,16 @@ Pinot 的设计使得它可以无限的向外扩展，基于集群的大小和�
 
 面向用户的实时分析应用程序对底层架构来说意味着什么?
 
-![Challenges of user-facing real-time analytics](./images/challenges_of_user-facing_real-time_analytics.png)
+![Challenges of user-facing real-time analytics](images/challenges\_of\_user-facing\_real-time\_analytics.png)
 
 * 这类应用需要尽可能新的数据，因此系统需要能够**实时地接收 (ingest) 数据，并提供实时查询**。
 * 这类应用的数据往往是来自多个来源的广泛的操作事件数据，所以数据**以非常高的速度进入，而且往往是高维的**。
 * 查询是由终端用户与应用的交互触发的 — 需要支持**每秒数十万查询**，**任意查询模式**和**以毫秒为单位的延迟**以获得良好的用户体验。
 * 这类应用还需要具有**可扩展性**、可靠性、高可用性和低成本。
 
-> **在 YouTube 中观看**  
-面向用户的实时分析和 Pinot 的功能：[Using Kafka and Pinot for Real-Time User-Facing Analytics](https://www.youtube.com/watch?v=L5b_OJVOJKo&t=576s)  
-Pinot 如何处理面向用户的分析中所面临的一些挑战：[Building Latency Sensitive User-facing Analytics via Apache Pinot](https://youtu.be/JV0WxBwJqKE)
+> **在 YouTube 中观看**\
+> 面向用户的实时分析和 Pinot 的功能：[Using Kafka and Pinot for Real-Time User-Facing Analytics](https://www.youtube.com/watch?v=L5b\_OJVOJKo\&t=576s)\
+> Pinot 如何处理面向用户的分析中所面临的一些挑战：[Building Latency Sensitive User-facing Analytics via Apache Pinot](https://youtu.be/JV0WxBwJqKE)
 
 ### 使用 Pinot 的公司
 
@@ -46,12 +45,12 @@ Pinot 还支持其他几个大公司的各种实时分析用例，包括 Uber、
 ### 特性
 
 * 一个具有各种压缩方案（如运行长度和固定的位长度）的面向列的数据库
-* 可插拔的[索引技术](https://github.com/dquaner/apache-pinot/blob/main/basics/Indexing.md)
+* 可插拔的[索引技术](basics/indexing/)
 * 能够基于查询和分段元数据优化查询和执行计划
-* 来自 Kafka 等数据流的近实时接收，以及来自 Hadoop、S3、Azure、GCS 等数据源的批量接收
+* 等流的近实时接收，以及来自 Hadoop、S3、Azure、GCS 等源的批量接收
 * 类 SQL 语言，支持对数据的选择、聚合、过滤、分组、排序和唯一 (distinct) 查询
 * 支持多值 (multi-valued) 字段
-* 水平扩展和容错
+* 横向可扩展和容错
 
 ## 什么时候应该使用 Pinot ?
 
@@ -93,11 +92,11 @@ Pinot [tenants](https://docs.pinot.apache.org/basics/components/tenant) 阻止�
 
 如果你刚刚接触 Pinot 并且想要通过示例学习如何使用，可以查看：
 
-- [Getting Started](https://docs.pinot.apache.org/basics/getting-started)
+* [Getting Started](https://docs.pinot.apache.org/basics/getting-started)
 
 如果你想开始学习将数据导入 Pinot，请查看我们基于[插件](https://docs.pinot.apache.org/developers/plugin-architecture)的批量导入和流接收指南：
 
-- [Import Data](https://docs.pinot.apache.org/basics/data-import)
+* [Import Data](https://docs.pinot.apache.org/basics/data-import)
 
 ### 查询示例
 
@@ -120,9 +119,9 @@ Pinot 可以部署到云、本地或虚拟机并在其上进行操作。你可�
 
 ### 单例模式
 
-- [Running Pinot locally](https://docs.pinot.apache.org/basics/getting-started/running-pinot-locally)
-- [Running Pinot in Docker](https://docs.pinot.apache.org/basics/getting-started/running-pinot-in-docker)
+* [Running Pinot locally](https://docs.pinot.apache.org/basics/getting-started/running-pinot-locally)
+* [Running Pinot in Docker](https://docs.pinot.apache.org/basics/getting-started/running-pinot-in-docker)
 
 ### 集群模式
 
-- [Running in Kubernetes](https://docs.pinot.apache.org/basics/getting-started/kubernetes-quickstart)
+* [Running in Kubernetes](https://docs.pinot.apache.org/basics/getting-started/kubernetes-quickstart)

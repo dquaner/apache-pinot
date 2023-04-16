@@ -1,28 +1,32 @@
+---
+description: Pinot 的组件和术语。
+---
+
 # Concepts
 
 Pinot 旨在为大型数据集提供低延迟查询。为了实现这一性能，Pinot 以列 (columnar) 格式存储数据，并添加额外的索引来执行快速过滤 (filtering) 、聚合 (aggregation) 和分组 (group by) 。
 
 原始数据 (Raw data) 被分解成小的数据碎片，每个碎片被转换成一个称为分段 ([segment](https://docs.pinot.apache.org/pinot-components/segment)) 的单位。一个或多个分段一起形成一个表 ([table](https://docs.pinot.apache.org/pinot-components/table)) ，表是使用 [SQL/PQL](https://docs.pinot.apache.org/user-guide/user-guide-query/pinot-query-language) 查询 Pinot 的逻辑容器。
 
-Pinot 使用了各种各样的术语，这些术语既包括数据[存储模型](#Pinot-Storage-Model)的抽象，也包括驱动系统功能的基础设施[组件](#Pinot-Components)。
+Pinot 使用了各种各样的术语，这些术语既包括数据[存储模型](Concepts.md#Pinot-Storage-Model)的抽象，也包括驱动系统功能的基础设施[组件](Concepts.md#Pinot-Components)。
 
 ## Pinot 存储模型
 
-![Pinot Storage Model Abstraction](./images/Concepts_pinot-storage-model.jpeg)
+![Pinot Storage Model Abstraction](images/Concepts\_pinot-storage-model.jpeg)
 
 ### Segment
 
-Pinot 有一个支持横向扩展的分布式系统架构。Pinot 预计一张表的大小会随着时间无限增长，为了实现这一点，数据需要分布在多个节点上。Pinot 通过将数据分解成更小的块 (chunks) ，Pinot 中称为分段 ([segments](https://docs.pinot.apache.org/basics/components/segment)) - 类似于 HA 关系数据库中的 shards/partitions，来实现这一点。分段也可以看作是基于时间的分区 (partitions) 。
+Pinot 有一个支持横向扩展的分布式系统架构。Pinot 预计一张表的大小会随着时间无限增长，为了实现这一点，数据需要分布在多个节点上。Pinot 通过将数据分解成更小的块，Pinot 中称为分段 ([segments](https://docs.pinot.apache.org/basics/components/segment)) — 类似于 HA 关系数据库中的 shards/partitions，来实现这一点。分段也可以看作是基于时间的分区 (partitions) 。
 
 ### Table
 
 与传统数据库相同，Pinot 有表 ([table](https://docs.pinot.apache.org/pinot-components/table)) 的概念：一个指向相关数据集合的逻辑抽象。
 
-与 RDBMS 相同，表是由可以使用 SQL 查询的列和行 (documents) 组成的结构。表与模式 ([schema](https://docs.pinot.apache.org/basics/components/schema)) 相关联，在模式定义表中的列及其数据类型。与 RDBMS 模式相比，Pinot 中的多个表 (real-time or batch) 可以继承单个模式定义。表是根据索引 (indexing) 策略、分区 (partitioning) 、租户 (tenants) 、数据源 (data sources) 、以及主从复制 (replication) 等问题独立配置的。
+与 RDBMS 相同，表是由可以使用 SQL 查询的列和行 (documents) 组成的结构。表与模式 ([schema](https://docs.pinot.apache.org/basics/components/schema)) 相关联，模式定义表中的列及其数据类型。与 RDBMS 模式相比，Pinot 中的多个表（real-time 或 batch）可以继承同一个模式定义。表是根据索引 (indexing) 策略、分区 (partitioning) 、租户 (tenants) 、数据源 (data sources) 、以及主从复制 (replication) 等问题独立配置的。
 
 ### Tenant
 
-为了支持多用户，Pinot 为租户 ([tenants](https://docs.pinot.apache.org/basics/components/tenant)) 提供了非常好的支持。表与租户相关联，这允许属于特定逻辑命名空间的所有表被分组在同一个租户名称下，并与其他租户隔离。租户之间的这种隔离为应用程序和团队提供了不同的命名空间，以防止共享表或模式。构建应用程序的开发团队不需要将 Pinot 独立部署。一个组织可以操作单个集群 (cluster) ，并为因增加新租户而增加总体查询量向外扩展；开发人员可以管理自己的模式和表，而不受集群上任何其他租户的影响。
+为了支持多用户，Pinot 为租户 ([tenants](https://docs.pinot.apache.org/basics/components/tenant)) 提供了非常好的支持。表与租户相关联，这允许属于特定逻辑命名空间的所有表被分组在同一个租户名称下，并与其他租户隔离。租户之间的这种隔离为应用程序和团队提供了不同的命名空间，以防止共享表或模式。构建应用程序的开发团队不需要将 Pinot 独立部署。一个组织可以操作一个集群 (cluster) ，并为因新增租户而增加的总体查询量向外扩展；开发人员可以管理自己的模式和表，而不受集群上任何其他租户 的影响。
 
 默认情况下，所有表都属于一个名为 “default” 的默认租户。租户的概念非常重要，因为它在不需要操作许多独立的数据库的情况下满足了 “database per service/application” 的架构原则。此外，租户将调度资源，以便分段 (shards) 能够限制表的数据只保存在指定的节点 (nodes) 上。与 Linux 容器中普遍使用的隔离 (isolation) 类似，可以调度 Pinot 中的计算资源，以防止租户之间的资源争用。
 
@@ -34,14 +38,14 @@ Pinot 有一个支持横向扩展的分布式系统架构。Pinot 预计一张�
 
 ## Pinot 组件
 
-![Pinot Components](./images/Concepts_pinot-components.svg)
+![Pinot Components](images/Concepts\_pinot-components.svg)
 
 Pinot 集群由多个分布式系统组件组成。对于监控系统使用情况或调试集群部署问题的操作人员来说，了解这些组件非常有用。
 
-- 控制器 (Controller)
-- 代理/中介 (Broker)
-- 服务器 (Server)
-- Minion (optional)
+* 控制器 (Controller)
+* 代理/中介 (Broker)
+* 服务器 (Server)
+* Minion (optional)
 
 通过与 [Apache Zookeeper](https://zookeeper.apache.org/) 以及 [Apache Helix](http://helix.apache.org/) 的集成，使Pinot 能够线性扩展到无限数量的节点。
 
