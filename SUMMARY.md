@@ -1,7 +1,7 @@
 # Table of contents
 
 * [Content](README.md)
-* [概述](Introduction.md)
+* [Introduction](Introduction.md)
 
 ## basics
 
