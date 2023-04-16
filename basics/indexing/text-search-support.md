@@ -226,19 +226,17 @@ WHERE TEXT_MATCH(QUERY_LOG_COL, '"timestamp between" AND "group by"')
  ]}
 ```
 
-The above mechanism can be used to configure text indexes in the following scenarios:
-上面的机制可以用于在以下场景中配置文本索引：
+The above mechanism can be used to configure text indexes in the following scenarios: 上面的机制可以用于在以下场景中配置文本索引：
 
 * 新添加一个其中一列或多列启用了文本索引的表
 * 在一个现有的表中添加一个启用了文本索引的新列
 * 在一个现有的列上启用文本索引
 
 {% hint style="info" %}
-当使用文本索引时，我们建议将索引列添加到 `noDictionaryColumns` 下来减少不必要的存储开销。&#x20;
+当使用文本索引时，我们建议将索引列添加到 `noDictionaryColumns` 下来减少不必要的存储开销。
 
-该配置属性的说明，请查看 [Raw value forward index](forward-index.md#原始值正排索引) 文档。
+该配置属性的说明，请查看 [Raw value forward index](forward-index.md#yuan-shi-zhi-zheng-pai-suo-yin) 文档。
 {% endhint %}
-
 
 ## 文本索引的创建过程
 
@@ -258,7 +256,7 @@ There is a default set of "stop words" built in Pinot's text index. This is a se
 "they", "this", "to", "was", "will", "with", "those"
 ```
 
-Any occurrence of these words in will be ignored by the tokenizer during index creation and search.&#x20;
+Any occurrence of these words in will be ignored by the tokenizer during index creation and search.
 
 In some cases, users might want to customize the set. A good example would be when `IT` (Information Technology) appears in the text that collides with "it", or some context-specific words that are not informative in the search. To do this, one can config the words in `fieldConfig` to include/exclude from the default stop words:
 
