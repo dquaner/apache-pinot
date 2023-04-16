@@ -2,7 +2,7 @@
 
 本页介绍 Apache Pinot 设计背后的指导原则。在这里，您将学习分布式系统架构，该架构允许 Pinot 根据集群中的节点数量线性扩展查询性能。还将介绍用于在 offline (batch) 或 real-time (stream) 模式下摄取 (ingest) 和查询 (query) 数据的两种不同类型的表。
 
-> 建议首先阅读[基本概念](https://github.com/dquaner/apache-pinot/blob/main/Concepts.md)以更好地理解本页中使用的术语。
+> 建议首先阅读[基本概念](https://github.com/dquaner/apache-pinot/blob/main/basics/Concepts.md)以更好地理解本页中使用的术语。
 
 ## 设计指导原则
 
@@ -16,7 +16,7 @@ Pinot 是由 LinkedIn 和 Uber 的工程师设计的，可以根据集群中的�
 
 ## 核心组件
 
-正如 [concepts](https://github.com/dquaner/apache-pinot/blob/main/Concepts.md) 中所描述的，Pinot 具有多个分布式系统组件：[Controller](https://docs.pinot.apache.org/basics/components/controller)，[Broker](https://docs.pinot.apache.org/basics/components/broker)，[Server](https://docs.pinot.apache.org/basics/components/server)，和 [Minion](https://docs.pinot.apache.org/basics/components/minion)。
+正如 [concepts](https://github.com/dquaner/apache-pinot/blob/main/basics/Concepts.md) 中所描述的，Pinot 具有多个分布式系统组件：[Controller](https://docs.pinot.apache.org/basics/components/controller)，[Broker](https://docs.pinot.apache.org/basics/components/broker)，[Server](https://docs.pinot.apache.org/basics/components/server)，和 [Minion](https://docs.pinot.apache.org/basics/components/minion)。
 [Apache Helix](http://helix.apache.org/) 作为一个代理嵌入到 Pinot 的不同组件中，帮助 Pinot 进行集群管理；[Apache Zookeeper](https://zookeeper.apache.org/) 负责协调和维护整体集群状态和健康状况。
 
 ![Pinot Core Components](./images/Architecture_core-components.svg)
