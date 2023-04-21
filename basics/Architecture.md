@@ -24,7 +24,7 @@ Pinot 是由 LinkedIn 和 Uber 的工程师设计的，可以根据集群中的�
 
 ![Pinot Core Components](images/Architecture\_core-components.svg)
 
-### Apache Helix and Zookeeper
+### Apache Helix 和 Zookeeper
 
 所有的 Pinot 服务器 ([servers](https://docs.pinot.apache.org/basics/components/server)) 和代理 ([brokers](https://docs.pinot.apache.org/basics/components/broker)) 都由 Helix 管理。Helix 是一个通用的集群管理框架，用于管理分布式系统中的分区 (partitions) 和副本 (replicas) 。可以将 Helix 看作是一个事件驱动的发现服务，它可以推送和拉取通知，可以将集群的状态驱动到理想的配置。一个维护着有状态操作 (stateful operations) 合约的有限状态机 (finite-state machine) ，将集群的健康状况驱动到最佳配置。随着 Helix 根据数据在集群中的存储位置更新节点之间的路由配置，查询负载也得到了优化。
 
