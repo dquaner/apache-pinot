@@ -1,7 +1,9 @@
 # Content
 
 参考链接：[Pinot Document](https://docs.pinot.apache.org/)
-文档地址：[学习笔记](https://dyy1007.gitbook.io/apache-pinot/)
+
+文档地址：[Pinot 学习笔记](https://dyy1007.gitbook.io/apache-pinot/)
+
 * [Introduction](Introduction.md) - Pinot 概述
 
 ## Basics
